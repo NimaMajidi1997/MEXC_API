@@ -2,25 +2,36 @@ from mexc_sdk import Spot
 import pprint
 import numpy as np
 import matplotlib.pyplot as plt
+import datetime
 
 client = Spot(api_key='***', api_secret='***')
-
+date = datetime.date.today()
+current_date = date.strftime("%Y-%m-%d")
 asset= []
 amount = []
-value = [1]
+value = []
 c=0
 
 for i in client.account_info()["balances"]:
-    ##pp = pprint.PrettyPrinter(indent=4)
-    #pp.pprint(i["asset"] + " = " + i["free"])
     asset.append(i["asset"])
     amount.append(float(i["free"]))
-    if i["asset"] != "USDT":
+    if i["asset"] == "USDT":
+        value.append(1.0)
+    else:
         value.append(float(client.ticker_price(i["asset"]+"USDT")["price"]))
     c=c+1
 
-arr_amo = np.array(amount)
-arr_val = np.array(value)
+asset_sorted = sorted(asset)
+amount_sorted = [x for _, x in sorted(zip(asset, amount))]
+value_sorted = [x for _, x in sorted(zip(asset, value))]
+#pp = pprint.PrettyPrinter(indent=4)
+#pp.pprint(asset_sorted)
+#pp.pprint(amount_sorted)
+#pp.pprint(value_sorted)
+
+
+arr_amo = np.array(amount_sorted)
+arr_val = np.array(value_sorted)
 
 total_val = arr_amo * arr_val
 total = np.sum(total_val)
@@ -28,36 +39,41 @@ x = np.arange(c)
 
 plt.figure(figsize=(19, 8)) 
 plt.stem(x,total_val)
-plt.xticks(x, asset, rotation=90, fontsize=12, ha='right')
+plt.xticks(x, asset_sorted, rotation=90, fontsize=9, ha='right')
 y_min = np.min(np.array(total_val))
 y_max = np.max(np.array(total_val))
-plt.yticks(np.linspace(y_min, y_max, 15))
+plt.yticks(np.linspace(y_min, y_max, 45))
 plt.ylabel('USDT')
-plt.title('My Spot Holding')
+chart_title = f"{current_date}    Holding: {np.round(total,2)}$"
+plt.title(chart_title, fontname='serif', fontsize=15, fontweight='bold')
 plt.grid(True)
 plt.tight_layout()
-plt.savefig('portfolio.svg', format='svg', dpi=500)
+fig_1 = '/mnt/c/Users/z004v63a/Documents/Images/portfolio/' + current_date + '.svg'
+plt.savefig(fig_1, format='svg', dpi=1000)
 
 other = []
 pi = []
 pi_asset = []
 explode = np.zeros(c)
 per_tot = (total_val / total) * 100
-threshold = 1.5
+threshold = 1.19
 filtered_numbers = [num for num in per_tot if num > threshold]
 for i in range(len(per_tot)):
     if per_tot[i] <= threshold:
         other.append(per_tot[i])
     else:
         pi.append(per_tot[i])
-        pi_asset.append(asset[i])
+        pi_asset.append(asset_sorted[i])
 
 pi.append(np.sum(other))
 pi_asset.append("Other")
 
+pi_asset_sorted = sorted(pi_asset)
+pi_sorted = [x for _, x in sorted(zip(pi_asset,pi))]
 
-chart_title = f"Total Holding: {np.round(total,2)} $"
-fig, ax = plt.subplots(figsize=(12, 12))
-ax.pie(pi, labels=pi_asset, autopct='%1.1f%%')
-plt.title(chart_title, fontname='serif', fontsize=20, fontweight='bold')
-plt.savefig('portfolio1.svg', format='svg', dpi=1000)
+chart_title = f"{current_date}    Holding: {np.round(total,2)}$"
+fig, ax = plt.subplots(figsize=(11, 11))
+ax.pie(pi_sorted, labels=pi_asset_sorted, autopct='%1.1f%%', textprops={'fontsize': 9})
+plt.title(chart_title, fontname='serif', fontsize=18, fontweight='bold')
+fig_2 = '/mnt/c/Users/z004v63a/Documents/Images/pi_chart/' + current_date + '.svg'
+plt.savefig(fig_2, format='svg', dpi=1000)
