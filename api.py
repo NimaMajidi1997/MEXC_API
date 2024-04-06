@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import datetime
 
-client = Spot(api_key='***', api_secret='***')
+client = Spot(api_key='API_KEY', api_secret='API_SECRET')
 date = datetime.date.today()
 current_date = date.strftime("%Y-%m-%d")
 asset= []
@@ -71,9 +71,14 @@ pi_asset.append("Other")
 pi_asset_sorted = sorted(pi_asset)
 pi_sorted = [x for _, x in sorted(zip(pi_asset,pi))]
 
+np.random.seed(123)
+num_colors = len(pi_sorted)
+random_colors = ['#%06x' % np.random.randint(0, 0xFFFFFF) for _ in range(num_colors)]
+
+
 chart_title = f"{current_date}    Holding: {np.round(total,2)}$"
 fig, ax = plt.subplots(figsize=(11, 11))
-ax.pie(pi_sorted, labels=pi_asset_sorted, autopct='%1.1f%%', textprops={'fontsize': 9})
+ax.pie(pi_sorted, labels=pi_asset_sorted, autopct='%1.1f%%',colors=random_colors, textprops={'fontsize': 9})
 plt.title(chart_title, fontname='serif', fontsize=18, fontweight='bold')
 fig_2 = '/mnt/c/Users/z004v63a/Documents/Images/pi_chart/' + current_date + '.svg'
 plt.savefig(fig_2, format='svg', dpi=1000)
